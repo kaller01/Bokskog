@@ -1,0 +1,6 @@
+.mp3
+.m4a
+config/audiobooks/*
+config/audiobooks.json
+config
+**/node_modules/**

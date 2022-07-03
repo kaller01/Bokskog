@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ExpressGeneratorTypeScriptApp</title>
+    <link rel="stylesheet" type="text/css" href="/stylesheets/style.css" />
+</head>
+
+
+<body>
+    <audio id="music">
+        <source src="http://localhost:3000/api/audiobook/62c0444ad8dc1deb026bb410/play" type="audio/mpeg">
+    </audio>
+    <script>
+        let music = document.getElementById('music');
+        function play(){
+            music.play();
+        }
+    </script>
+    <button onclick="play()">Play</button>
+</body>
+
+</html>
