@@ -8,8 +8,13 @@ export interface AudiobookExtra {
 
 export interface Audiobook extends DBModel, Partial<AudiobookExtra> {
     name: string,
-    file: string,
+    file: {
+        path: string
+        size: number
+    }[],
+    length: number;
     ext: string,
+    dir: string,
 }
 export const AudiobookSchema: Schema = {
     name: "Audiobook",

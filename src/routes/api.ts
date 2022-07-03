@@ -12,17 +12,17 @@ import users from '../controllers/users';
 const baseRouter = Router();
 
 // Setup routers
-baseRouter.use("/audiobook", async (req, res, next) => {
-    if (!req.query.auth) throw new NoPermissionError();
-    const authid = req.query.auth;
+baseRouter.use("/:auth/audiobook", async (req, res, next) => {
+    const authid = req.params.auth;
     const user = await users.getUser(String(authid));
+    res.locals.user = user;
     if (user.listen) next();
     else throw new NoPermissionError();
 }, audiobookRouter);
-baseRouter.use("/admin", async (req, res, next) => {
-    if (!req.query.auth) throw new NoPermissionError();
-    const authid = req.query.auth;
+baseRouter.use("/:auth/admin", async (req, res, next) => {
+    const authid = req.params.auth;
     const user = await users.getUser(String(authid));
+    res.locals.user = user;
     if (user.admin) next();
     else throw new NoPermissionError();
 }, adminRouter);

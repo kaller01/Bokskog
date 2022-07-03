@@ -21,21 +21,19 @@ const users_1 = __importDefault(require("../controllers/users"));
 // Export the base-router
 const baseRouter = (0, express_1.Router)();
 // Setup routers
-baseRouter.use("/audiobook", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    if (!req.query.auth)
-        throw new errors_1.NoPermissionError();
-    const authid = req.query.auth;
+baseRouter.use("/:auth/audiobook", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const authid = req.params.auth;
     const user = yield users_1.default.getUser(String(authid));
+    res.locals.user = user;
     if (user.listen)
         next();
     else
         throw new errors_1.NoPermissionError();
 }), audiobook_router_1.default);
-baseRouter.use("/admin", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    if (!req.query.auth)
-        throw new errors_1.NoPermissionError();
-    const authid = req.query.auth;
+baseRouter.use("/:auth/admin", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const authid = req.params.auth;
     const user = yield users_1.default.getUser(String(authid));
+    res.locals.user = user;
     if (user.admin)
         next();
     else

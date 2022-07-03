@@ -4,3 +4,5 @@ config/audiobooks/*
 config/audiobooks.json
 config
 **/node_modules/**
+./src/.env
+dist

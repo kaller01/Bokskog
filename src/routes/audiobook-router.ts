@@ -20,7 +20,7 @@ router.route("/")
 
 router.route("/rss").get(async (req: Request, res: Response) => {
     let books = await audiobooks.getAudiobooks();
-    const xml = await audiobooks.generatePodcast(books, String(req.query.auth));
+    const xml = await audiobooks.generatePodcast(books, res.locals.user);
     res.type('application/xml');
     res.send(xml);
 })
@@ -33,8 +33,7 @@ router.route(`/:id`)
 
 router.route(`/:id/play.mp3`).get(async (req: Request, res: Response) => {
     const audiobook = await audiobooks.getAudiobook(req.params.id);
-    const filename = process.env.BOKSKOG_LOCAL + "audiobooks/" + audiobook.file;
-    const { size } = await fileInfo(filename);
+    const size = audiobook.length;
     const range = req.headers.range;
     if (range) {
         let [startRaw, endRaw] = range.replace(/bytes=/, '').split('-');
@@ -47,14 +46,15 @@ router.route(`/:id/play.mp3`).get(async (req: Request, res: Response) => {
             'Content-Length': (start - end) + 1,
             'Content-Type': 'audio/mp3'
         })
-
-        createReadStream(filename, { start, end }).pipe(res);
+        const stream = await audiobooks.getReadStreamRange(audiobook, start, end)
+        stream.pipe(res);
     } else {
+        const stream = await audiobooks.getReadStream(audiobook)
         res.writeHead(200, {
             'Content-Length': size,
             'Content-Type': 'audio/mp3'
         });
-        createReadStream(filename).pipe(res);
+        stream.pipe(res);
     }
 })
 

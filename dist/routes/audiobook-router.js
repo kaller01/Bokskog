@@ -30,7 +30,7 @@ router.route("/")
 }));
 router.route("/rss").get((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let books = yield audiobooks_1.default.getAudiobooks();
-    const xml = yield audiobooks_1.default.generatePodcast(books, String(req.query.auth));
+    const xml = yield audiobooks_1.default.generatePodcast(books, res.locals.user);
     res.type('application/xml');
     res.send(xml);
 }));
@@ -41,8 +41,7 @@ router.route(`/:id`)
 }));
 router.route(`/:id/play.mp3`).get((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const audiobook = yield audiobooks_1.default.getAudiobook(req.params.id);
-    const filename = process.env.BOKSKOG_LOCAL + "audiobooks/" + audiobook.file;
-    const { size } = yield fileInfo(filename);
+    const size = audiobook.length;
     const range = req.headers.range;
     if (range) {
         let [startRaw, endRaw] = range.replace(/bytes=/, '').split('-');
@@ -54,14 +53,16 @@ router.route(`/:id/play.mp3`).get((req, res) => __awaiter(void 0, void 0, void 0
             'Content-Length': (start - end) + 1,
             'Content-Type': 'audio/mp3'
         });
-        (0, fs_1.createReadStream)(filename, { start, end }).pipe(res);
+        const stream = yield audiobooks_1.default.getReadStreamRange(audiobook, start, end);
+        stream.pipe(res);
     }
     else {
+        const stream = yield audiobooks_1.default.getReadStream(audiobook);
         res.writeHead(200, {
             'Content-Length': size,
             'Content-Type': 'audio/mp3'
         });
-        (0, fs_1.createReadStream)(filename).pipe(res);
+        stream.pipe(res);
     }
 }));
 // Export default
