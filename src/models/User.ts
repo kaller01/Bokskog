@@ -21,3 +21,6 @@ export const UserDB = new ModelJSONDB<User>(process.env.BOKSKOG_LOCAL + "users.j
 })
 
 UserDB.load();
+UserDB.find().then(users => {
+    console.log(users);
+})

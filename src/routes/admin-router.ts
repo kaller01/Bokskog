@@ -32,7 +32,7 @@ router.route("/:name")
             listen: true,
             name: String(req.params.name)
         })
-        res.json(user);
+        res.redirect(process.env.BOKSKOG_PUBLIC + "api/"+user._id+"/audiobook/rss");
     })
 
 // Export default

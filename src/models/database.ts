@@ -69,7 +69,6 @@ export interface Schema {
 
 export interface DBModel {
     readonly _id: string
-    readonly db: string
 }
 interface ModelStructure<Model extends DBModel> {
     [key: string]: Model
@@ -90,8 +89,8 @@ export class ModelJSONDB<Model extends DBModel> extends JSONDB {
             this.add(this.defaultData)
     }
 
-    find(): Model[] {
-        this.load();
+    async find(): Promise<Model[]> {
+        await this.load();
         const data = this.data;
         return Object.keys(this.data)
             .map(function (id) {
@@ -110,6 +109,14 @@ export class ModelJSONDB<Model extends DBModel> extends JSONDB {
             _id: id
         }
     }
+
+    async update(model: Model) {
+        const id = model._id;
+        const data = <any>model;
+        delete data._id;
+        this.write(id, data);
+    }
+
     async add(input: Object): Promise<Model> {
         let model = <Model>input;
         try {

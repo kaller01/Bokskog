@@ -13,6 +13,7 @@ export interface Audiobook extends DBModel, Partial<AudiobookExtra> {
         size: number
     }[],
     length: number;
+    duration: number,
     ext: string,
     dir: string,
 }

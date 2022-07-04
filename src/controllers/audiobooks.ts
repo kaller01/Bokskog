@@ -7,9 +7,9 @@ import path, { resolve } from "path";
 const glob = require("glob");
 import { createReadStream, ReadStream, stat } from 'fs';
 import { promisify } from 'util';
-import { Stream } from "stream";
+import { PassThrough, Stream } from "stream";
 import { User } from "@models/User";
-const stream = require('stream')
+const { getAudioDurationInSeconds } = require('get-audio-duration')
 const fileInfo = promisify(stat);
 
 const getAudiobooks = () => {
@@ -50,10 +50,10 @@ const generatePodcast = async (books: Audiobook[], user: User): Promise<string> 
     return Mustache.render(template, data);
 }
 
-const bookExists = (dir: string) => {
-    const books = AudiobookDB.find()
+const bookExists = async (dir: string) => {
+    const books = await AudiobookDB.find()
     for (const book of books) {
-        if (book.dir === dir) return true;
+        if (book.dir === dir) return book._id;
     }
     return false;
 }
@@ -61,6 +61,8 @@ const bookExists = (dir: string) => {
 interface audiofile {
     dir: string;
     ext: string;
+    duration: number;
+    length: number,
     audio: {
         path: string,
         size: number
@@ -72,10 +74,6 @@ const scanForBooks = async (): Promise<audiofile[]> => {
         if (!process.env.BOKSKOG_LOCAL) throw new InternalError(null);
         glob("/audiobooks/*/*.+(mp3|m4a|m4b|acc|ogg|wav)", { root: process.env.BOKSKOG_LOCAL }, async (err: any, paths: string[]) => {
             if (err) throw err;
-            console.log(paths)
-            // paths = paths.map((match: string) => {
-            //     return path.relative(String(process.env.BOKSKOG_LOCAL + "audiobooks/"), match);
-            // });
 
             const files: { [key: string]: audiofile } = {};
 
@@ -86,10 +84,15 @@ const scanForBooks = async (): Promise<audiofile[]> => {
                     files[dir] = {
                         dir: path.relative(String(process.env.BOKSKOG_LOCAL + "audiobooks/"), dir),
                         ext,
-                        audio: []
+                        audio: [],
+                        duration: 0,
+                        length: 0,
                     };
                 }
                 const { size } = await fileInfo(filepath);
+                const duration = await getAudioDurationInSeconds(filepath);
+                files[dir].duration += duration;
+                files[dir].length += size;
                 files[dir].audio.push({
                     path: filepath,
                     size
@@ -100,7 +103,7 @@ const scanForBooks = async (): Promise<audiofile[]> => {
                     return files[key];
                 });
 
-            result = result.filter(audio => !bookExists(audio.dir))
+            // result = result.filter(audio => !bookExists(audio.dir))
             resolve(result);
         })
     })
@@ -110,28 +113,53 @@ const scanForBooks = async (): Promise<audiofile[]> => {
 
 const scanAndAdd = (files: audiofile[]) => {
     files.forEach(async file => {
-        let length = 0;
-        for (let { size } of file.audio) {
-            length += size;
+        let id = await bookExists(file.dir);
+        if (id) {
+            AudiobookDB.update({
+                file: file.audio,
+                name: file.dir,
+                dir: file.dir,
+                length: file.length,
+                duration: Math.floor(file.duration),
+                ext: file.ext.replace(".", ""),
+                _id: id,
+            })
+        } else {
+            AudiobookDB.add({
+                file: file.audio,
+                name: file.dir,
+                dir: file.dir,
+                length: file.length,
+                duration: Math.floor(file.duration),
+                ext: file.ext.replace(".", "")
+            })
         }
-        addAudiobook({
-            file: file.audio,
-            name: file.dir,
-            dir: file.dir,
-            length,
-            ext: file.ext.replace(".", "")
-        })
-
     });
 }
 
-async function* concatStreams(readables: any) {
-    for (const readable of readables) {
-        for await (const chunk of readable) { yield chunk }
+const pipeStreams = (streams: Stream[]): Stream => {
+    //If there is only one stream, return that stream
+    if (streams.length == 1) return streams[0];
+    const out = new PassThrough()
+    // Piping the first stream to the out stream
+    // Also prevent the automated 'end' event of out stream from firing
+    streams[0].pipe(out, { end: false })
+    for (let i = 0; i < streams.length - 2; i++) {
+        // On the end of each stream (until the second last) pipe the next stream to the out stream
+        // Prevent the automated 'end' event of out stream from firing
+        streams[i].on('end', () => {
+            streams[i + 1].pipe(out, { end: false })
+        })
     }
+    // On the end of second last stream pipe the last stream to the out stream.
+    // Don't prevent the 'end flag from firing'
+    streams[streams.length - 2].on('end', () => {
+        streams[streams.length - 1].pipe(out)
+    })
+    return out
 }
 
-const getReadStreamRange = async (audiobook: Audiobook, start: number, end: number): Promise<ReadStream> => {
+const getReadStreamRange = async (audiobook: Audiobook, start: number, end: number): Promise<Stream> => {
     const streams = []
     let pos = 0
     // console.log("Range", start, end);
@@ -152,15 +180,12 @@ const getReadStreamRange = async (audiobook: Audiobook, start: number, end: numb
             pos += audio.size;
         }
     }
-
-    const iterable = await concatStreams(streams)
-    const mergedStream = stream.Readable.from(iterable)
+    const mergedStream = pipeStreams(streams);
     return mergedStream;
 }
 
 const getReadStream = async (audiobook: Audiobook): Promise<Stream> => {
-    const iterable = await concatStreams(audiobook.file.map(f => createReadStream(f.path)))
-    const mergedStream = stream.Readable.from(iterable)
+    const mergedStream = pipeStreams(audiobook.file.map(f => createReadStream(f.path)))
     return mergedStream;
 }
 
