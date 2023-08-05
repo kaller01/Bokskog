@@ -22,5 +22,7 @@ export const UserDB = new ModelJSONDB<User>(process.env.BOKSKOG_CONFIG + "users.
 
 UserDB.load();
 UserDB.find().then(users => {
-    console.log(users);
+    users.forEach(user => {
+        console.log(user.name, "has private podcast link", process.env.BOKSKOG_PUBLIC + "api/" + user._id + "/audiobook/rss")
+    })
 })

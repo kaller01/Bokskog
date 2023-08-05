@@ -79,7 +79,6 @@ const scanForBooks = async (): Promise<audiofile[]> => {
 
             for (const filepath of paths) {
                 const { dir, ext } = path.parse(filepath)
-                console.log(filepath, path.parse(filepath))
                 if (!Object.keys(files).includes(dir)) {
                     files[dir] = {
                         dir: path.relative(String(process.env.BOKSKOG_LIBRARY), dir),

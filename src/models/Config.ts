@@ -48,4 +48,3 @@ export const getTemplateRss = (): string => {
 }
 
 const data = getTemplateRss();
-console.log(data);

@@ -17,7 +17,6 @@ import { existsSync } from 'fs';
         throw result2.error;
     }
     if (process.env.BOKSKOG_CONFIG) {
-        console.log(process.env.BOKSKOG_CONFIG);
         if (await !existsSync(process.env.BOKSKOG_CONFIG)) throw Error("BOKSKOG_CONFIG does not exist")
     }
 })();
