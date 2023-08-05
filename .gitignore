@@ -5,3 +5,4 @@ config/audiobooks.json
 config
 **/node_modules/**
 dist
+audiobooks

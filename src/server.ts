@@ -79,8 +79,7 @@ app.use(express.static(staticDir));
 
 // Serve index.html file
 app.get('/', (_: Request, res: Response) => {
-
-    res.send("Bokskog")
+    res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
 
