@@ -14,7 +14,7 @@ export const AudiobookSchema: Schema = {
     }
 }
 
-export const UserDB = new ModelJSONDB<User>(process.env.BOKSKOG_LOCAL + "users.json", AudiobookSchema, {
+export const UserDB = new ModelJSONDB<User>(process.env.BOKSKOG_CONFIG + "users.json", AudiobookSchema, {
     name: "Admin",
     admin: true,
     listen: true

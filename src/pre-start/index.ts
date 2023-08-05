@@ -11,13 +11,13 @@ import { existsSync } from 'fs';
 (async () => {
     // Set the env file
     const result2 = dotenv.config({
-        path: path.join(__dirname, `../.env`),
+        path: path.join(__dirname, `../../.env`),
     });
     if (result2.error) {
         throw result2.error;
     }
-    if (process.env.BOKSKOG_LOCAL) {
-        console.log(process.env.BOKSKOG_LOCAL);
-        if (await !existsSync(process.env.BOKSKOG_LOCAL)) throw Error("BOKSKOG_LOCAL does not exist")
+    if (process.env.BOKSKOG_CONFIG) {
+        console.log(process.env.BOKSKOG_CONFIG);
+        if (await !existsSync(process.env.BOKSKOG_CONFIG)) throw Error("BOKSKOG_CONFIG does not exist")
     }
 })();

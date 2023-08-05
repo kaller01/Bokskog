@@ -2,7 +2,8 @@ declare global {
     namespace NodeJS {
         interface ProcessEnv {
             BOKSKOG_PUBLIC: string;
-            BOKSKOG_LOCAL: string;
+            BOKSKOG_CONFIG: string;
+            BOKSKOG_LIBRARY: string;
         }
     }
 }

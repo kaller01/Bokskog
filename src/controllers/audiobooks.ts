@@ -71,8 +71,8 @@ interface audiofile {
 
 const scanForBooks = async (): Promise<audiofile[]> => {
     return new Promise((resolve) => {
-        if (!process.env.BOKSKOG_LOCAL) throw new InternalError(null);
-        glob("/audiobooks/*/*.+(mp3|m4a|m4b|acc|ogg|wav)", { root: process.env.BOKSKOG_LOCAL }, async (err: any, paths: string[]) => {
+        if (!process.env.BOKSKOG_LIBRARY) throw new InternalError(null);
+        glob("./*/*.+(mp3|m4a|m4b|acc|ogg|wav)", { root: process.env.BOKSKOG_LIBRARY }, async (err: any, paths: string[]) => {
             if (err) throw err;
 
             const files: { [key: string]: audiofile } = {};
@@ -82,7 +82,7 @@ const scanForBooks = async (): Promise<audiofile[]> => {
                 console.log(filepath, path.parse(filepath))
                 if (!Object.keys(files).includes(dir)) {
                     files[dir] = {
-                        dir: path.relative(String(process.env.BOKSKOG_LOCAL + "audiobooks/"), dir),
+                        dir: path.relative(String(process.env.BOKSKOG_LIBRARY + "audiobooks/"), dir),
                         ext,
                         audio: [],
                         duration: 0,

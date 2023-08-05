@@ -27,5 +27,5 @@ export const AudiobookSchema: Schema = {
 
 }
 
-export const AudiobookDB = new ModelJSONDB<Audiobook>(process.env.BOKSKOG_LOCAL + "audiobooks.json", AudiobookSchema, null)
+export const AudiobookDB = new ModelJSONDB<Audiobook>(process.env.BOKSKOG_CONFIG + "audiobooks.json", AudiobookSchema, null)
 AudiobookDB.load();

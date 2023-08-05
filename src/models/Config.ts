@@ -1,7 +1,7 @@
 import { KeyJSONDB } from "./database";
 import { readFileSync, writeFileSync } from "fs";
 
-export const rssConfig = new KeyJSONDB(process.env.BOKSKOG_LOCAL + "rss.json", {
+export const rssConfig = new KeyJSONDB(process.env.BOKSKOG_CONFIG + "rss.json", {
     "title": "Bokskog",
     "description": "Self hosted audiobook library.",
     "image": "https://photos.kallers.se/1080h/_MK23095.jpg",
@@ -36,11 +36,11 @@ const rssDefaultTemplate = `<?xml version="1.0" encoding="UTF-8"?>
 
 export const getTemplateRss = (): string => {
     try {
-        return readFileSync(process.env.BOKSKOG_LOCAL + "rss.mustache", 'utf8')
+        return readFileSync(process.env.BOKSKOG_CONFIG + "rss.mustache", 'utf8')
     } catch (error) {
         try {
-            writeFileSync(String(process.env.BOKSKOG_LOCAL + "rss.mustache"), rssDefaultTemplate, 'utf8')
-            return readFileSync(process.env.BOKSKOG_LOCAL + "rss.mustache", 'utf8')
+            writeFileSync(String(process.env.BOKSKOG_CONFIG + "rss.mustache"), rssDefaultTemplate, 'utf8')
+            return readFileSync(process.env.BOKSKOG_CONFIG + "rss.mustache", 'utf8')
         } catch (error) {
             return rssDefaultTemplate;
         }
